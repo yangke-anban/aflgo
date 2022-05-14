@@ -322,42 +322,40 @@ bool AFLCoverage::runOnModule(Module &M) {
           if (filename.empty() || line == 0 || !filename.compare(0, Xlibs.size(), Xlibs))
             continue;
 
-          if (bb_name.empty()) {
+          std::size_t found = filename.find_last_of("/\\");
+          if (found != std::string::npos)
+            filename = filename.substr(found + 1);
+
+          if (bb_name.empty()) 
+            bb_name = filename + ":" + std::to_string(line);
+          
+          if (!is_target) {
+            for (auto &target : targets) {
+              std::size_t found = target.find_last_of("/\\");
+              if (found != std::string::npos)
+                target = target.substr(found + 1);
+
+              std::size_t pos = target.find_last_of(":");
+              std::string target_file = target.substr(0, pos);
+              unsigned int target_line = atoi(target.substr(pos + 1).c_str());
+
+              if (!target_file.compare(filename) && target_line == line)
+                is_target = true;
+
+            }
+          }
+
+          if (auto *c = dyn_cast<CallInst>(&I)) {
 
             std::size_t found = filename.find_last_of("/\\");
             if (found != std::string::npos)
               filename = filename.substr(found + 1);
 
-            bb_name = filename + ":" + std::to_string(line);
+            if (auto *CalledF = c->getCalledFunction()) {
+              if (!isBlacklisted(CalledF))
+                bbcalls << bb_name << "," << CalledF->getName().str() << "\n";
+            }
           }
-
-          if (!is_target) {
-              for (auto &target : targets) {
-                std::size_t found = target.find_last_of("/\\");
-                if (found != std::string::npos)
-                  target = target.substr(found + 1);
-
-                std::size_t pos = target.find_last_of(":");
-                std::string target_file = target.substr(0, pos);
-                unsigned int target_line = atoi(target.substr(pos + 1).c_str());
-
-                if (!target_file.compare(filename) && target_line == line)
-                  is_target = true;
-
-              }
-            }
-
-            if (auto *c = dyn_cast<CallInst>(&I)) {
-
-              std::size_t found = filename.find_last_of("/\\");
-              if (found != std::string::npos)
-                filename = filename.substr(found + 1);
-
-              if (auto *CalledF = c->getCalledFunction()) {
-                if (!isBlacklisted(CalledF))
-                  bbcalls << bb_name << "," << CalledF->getName().str() << "\n";
-              }
-            }
         }
 
         if (!bb_name.empty()) {
