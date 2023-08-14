@@ -164,6 +164,7 @@ std::vector<vertex_desc> cfg_calculation(
         bo::trim(line);
         std::vector<std::string> splits;
         bo::algorithm::split(splits, line, bo::is_any_of(","));;
+	if(line.length() == 0) {continue;}
         assert(splits.size() == 2);
         cg_distance[splits[0]] = std::stod(splits[1]);
     }
@@ -174,6 +175,7 @@ std::vector<vertex_desc> cfg_calculation(
 
     for (std::string line; getline(cg_callsites_stream, line); ) {
         bo::trim(line);
+	if(line.length() == 0) {continue;}
         std::vector<std::string> splits;
         bo::algorithm::split(splits, line, bo::is_any_of(","));;
         assert(splits.size() == 2);

@@ -139,7 +139,7 @@ def exec_distance_prog(dot, targets, out, names, cg_distance=None,
 def dd_cleanup(cfg):
     cmd = fr"""
     awk '!a[$0]++' {cfg} > {cfg}.smaller.dot;
-    mv {cfg}.smaller.dot {cfg};
+    mv -f {cfg}.smaller.dot {cfg};
     sed -i s/\\\\\"//g {cfg};
     sed -i 's/\[.\"]//g' {cfg};
     sed -i 's/\(^\s*[0-9a-zA-Z_]*\):[a-zA-Z0-9]*\( -> \)/\1\2/g' {cfg}
